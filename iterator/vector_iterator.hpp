@@ -189,12 +189,6 @@ namespace ft {
 
 	};
 
-
-	template<typename T, typename A = std::allocator<T> >
-	class const_reverse_iterator {
-
-	};
-
 } // ft
 
 
