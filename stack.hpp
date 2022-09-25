@@ -22,7 +22,7 @@ namespace ft {
 		typedef typename Container::const_reference const_reference;
 
 	protected:
-		Container c;
+		container_type c;
 
 	public:
 		explicit stack<T, Container>(const Container &container = Container()) : c(container) {}
@@ -37,17 +37,12 @@ namespace ft {
 			return *this;
 		}
 
-		bool operator==(const stack &rhs) { return c == rhs.c; }
-
-		bool operator!=(const stack &rhs) { return c != rhs.c; }
-
-		bool operator<=(const stack &rhs) { return c <= rhs.c; }
-
-		bool operator>=(const stack &rhs) { return c >= rhs.c; }
-
-		bool operator>(const stack &rhs) { return c > rhs.c; }
-
-		bool operator<(const stack &rhs) { return c < rhs.c; }
+		friend bool operator==(const stack<T, Container> &lhs, const stack<T, Container> &rhs) { return lhs.c == rhs.c; }
+		friend bool operator!=(const stack<T, Container> &lhs, const stack<T, Container> &rhs) { return lhs.c != rhs.c; }
+		friend bool operator<=(const stack<T, Container> &lhs, const stack<T, Container> &rhs) { return lhs.c <= rhs.c; }
+		friend bool operator>=(const stack<T, Container> &lhs, const stack<T, Container> &rhs) { return lhs.c >= rhs.c; }
+		friend bool operator>(const stack<T, Container> &lhs, const stack<T, Container> &rhs) { return lhs.c > rhs.c; }
+		friend bool operator<(const stack<T, Container> &lhs, const stack<T, Container> &rhs) { return lhs.c < rhs.c; }
 
 		reference top(void) { return c.back(); }
 
@@ -61,5 +56,5 @@ namespace ft {
 
 		void pop(void) { c.pop(); }
 	};
-}
+} //ft
 #endif //FT_CONTAINER_STACK_HPP
