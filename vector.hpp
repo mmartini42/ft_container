@@ -9,7 +9,7 @@
 
 #include <iostream>
 #include <iomanip>
-#include <string>
+#include <memory>
 
 #include "iterator/iterator.hpp"
 #include "iterator/enable_if.hpp"
@@ -17,22 +17,22 @@
 
 namespace ft {
 
-	template<typename T, typename Allocator = std::allocator<T> >
+	template<class T, class A = std::allocator<T> >
 	class vector {
 
 	public:
 		typedef	T			value_type;
-		typedef Allocator 	allocator_type;
+		typedef A		 	allocator_type;
 		typedef	size_t		size_type;
 		typedef ptrdiff_t	difference_type;
-		typedef typename Allocator::reference		reference;
-		typedef typename Allocator::const_reference	const_reference;
-		typedef typename Allocator::pointer			pointer;
-		typedef typename Allocator::const_pointer	const_pointer;
-		typedef ft::random_access_iterator<value_type>                           iterator;
-		typedef ft::random_access_iterator<const value_type>                     const_iterator;
-		typedef ft::reverse_iterator<const_iterator>                             const_reverse_iterator;
-		typedef ft::reverse_iterator<iterator>                                   reverse_iterator;
+		typedef typename A::reference		reference;
+		typedef typename A::const_reference	const_reference;
+		typedef typename A::pointer			pointer;
+		typedef typename A::const_pointer	const_pointer;
+		typedef ft::random_access_iterator<value_type>			iterator;
+		typedef ft::random_access_iterator<const value_type>    const_iterator;
+		typedef ft::reverse_iterator<const_iterator>            const_reverse_iterator;
+		typedef ft::reverse_iterator<iterator>                  reverse_iterator;
 
 	private:
 		allocator_type	_allocator;
@@ -102,7 +102,7 @@ namespace ft {
 		const_reverse_iterator	rbegin() const	{ return const_reverse_iterator(&_data[_size]); }
 		const_reverse_iterator	rend()	 const	{ return const_reverse_iterator(&_data[0]); }
 
-		size_type	size() const 		{ return _size; }
+		size_type	size()		 const 	{ return _size; }
 		size_type	max_size()			{ return  std::numeric_limits<size_type>::max() / sizeof(value_type); }
 		size_type	capacity()	const	{ return _capacity; }
 		bool 		empty()		const 	{ _size == 0; }
@@ -171,10 +171,94 @@ namespace ft {
 			return _data[nb];
 		}
 
-		reference			front() 	{ return _data[0]; }
+		reference		front() 		{ return _data[0]; }
 		reference		back()			{ return _data[_size - 1]; }
 		const_reference	front() const 	{ return _data[0]; }
 		const_reference back()	const	{ return _data[_size - 1]; }
+
+
+		template <class InputIterator>
+		void	assign(InputIterator first,
+					 InputIterator last,
+					 typename ft::enable_if<!ft::is_integral<InputIterator>::value,
+					 InputIterator>::type * = NULL)	{
+			clear();
+			check_capacity();
+			for ( ; first != last; first++)
+				push_back(*first);
+		}
+
+		void 	assign(size_type nb, const value_type& val) {
+			clear();
+			check_capacity();
+			for ( size_type i = 0; i < nb; i++)
+				push_back(val);
+		}
+
+		void 	push_back(const value_type& val) {
+			check_capacity();
+			_allocator.construct(&_data[_size], val);
+			_size++;
+		}
+
+		void 	pop_back() {
+			_allocator.destroy(&_data[_size - 1]);
+			_size;
+		}
+
+		iterator insert (iterator position, const value_type& val) {
+			size_type index = position - begin();
+			if (index <= _capacity)	{
+				check_capacity();
+				for (size_type i = _size; i >= 0; i--) {
+					if (i == index)	{
+						_allocator.construct(&_data[i + 1], _data[i]);
+						_allocator.destroy(&_data[i]);
+						_allocator.construct(&_data[i], val);
+						break;
+					} else {
+						_allocator.construct(&_data[i + 1], _data[i]);
+						_allocator.destroy(&_data[i]);
+					}
+				}
+				_size++;
+			}
+			return iterator(&_data[index]);
+		}
+
+		void 	swap(vector &toSwap) {
+			std::swap(_allocator, toSwap._allocator);
+			std::swap(_data, toSwap._data);
+			std::swap(_capacity, toSwap._capacity);
+			std::swap(_size, toSwap._size);
+		}
+
+		void	clear() {
+			if (_data != NULL) {
+				for (size_type i = 0; i < _size; i++)
+					_allocator.destroy(&_data[i]);
+
+				_allocator.deallocate(_data, _capacity);
+				_data = NULL;
+				_size = 0;
+			}
+		}
+
+		void check_capacity() {
+			if (_size == _capacity)
+				reserve(_capacity * 2);
+			if (_data == NULL)
+				reserve(_capacity);
+		}
+
+		void check_capacity (size_type n) {
+			if (_capacity < n)
+				reserve(n);
+			else if (_size == _capacity)
+				reserve(_capacity * 2);
+			else if (_data == NULL)
+				reserve(_capacity);
+		}
 
 	};
 
