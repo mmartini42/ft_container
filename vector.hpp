@@ -206,7 +206,7 @@ namespace ft {
 			_size;
 		}
 
-		iterator insert (iterator position, const value_type& val) {
+		iterator	insert(iterator position, const value_type& val) {
 			size_type index = position - begin();
 			if (index <= _capacity)	{
 				check_capacity();
@@ -224,6 +224,30 @@ namespace ft {
 				_size++;
 			}
 			return iterator(&_data[index]);
+		}
+
+		void	insert(iterator position, size_type n, const value_type& val) {
+			size_type index = position - begin();
+			if (index <= _capacity) {
+				if (_capacity - _size < n)
+					reserve(_capacity + n);
+				else
+					check_capacity();
+
+				for (size_type i = _size; i >= 0; i--) {
+					if (i == index)	{
+						_allocator.construct(&_data[i + n], _data[i]);
+						_allocator.destroy(&_data[i]);
+						for (size_type j = 0; j < n; j++)
+							_allocator.construct(&_data[i + j], val);
+						break;
+					} else {
+						_allocator.construct(&_data[i + n], _data[i]);
+						_allocator.destroy(&_data[i]);
+					}
+				}
+				_size += n;
+			}
 		}
 
 		void 	swap(vector &toSwap) {
