@@ -250,6 +250,68 @@ namespace ft {
 			}
 		}
 
+		template <class InputIterator>
+		void 	insert(iterator position,
+					 InputIterator first,
+					 InputIterator last,
+					 typename ft::enable_if<!ft::is_integral<InputIterator>::value,
+					 InputIterator>::type * = NULL) {
+			size_type index = position - begin();
+			if (index <= _capacity)	{
+				value_type *tmp = _data;
+				size_type	size_tmp = _size;
+				size_type	capacity_tmp = _capacity;
+				_data = _allocator.allocate(_capacity);
+				for (size_type i = 0; i < index; i++) {
+					_allocator.construct(&_data[i], tmp[i]);
+					_allocator.destroy(&tmp[i]);
+				}
+				_size = index;
+				for ( ; first != last; first++)
+					push_back(*first);
+				for (size_type i = index; i < size_tmp; i++) {
+					push_back(tmp[i]);
+					_allocator.destroy(&tmp[i]);
+				}
+				_allocator.deallocate(tmp, capacity_tmp);
+			}
+		}
+
+		iterator	erase(iterator position) {
+			size_type index = position - begin();
+
+			_allocator.destroy(&_data[index]);
+
+			for (size_type i = index; i < _size; i++) {
+				_allocator.construct(&_data[i], _data[i + 1]);
+				_allocator.destroy(&_data[i + 1]);
+			}
+
+			_allocator.destroy(&_data[_size - 1]);
+			_size--;
+			return _data;
+		}
+
+		iterator 	erase(iterator first, iterator last) {
+			size_type index;
+			size_type index_tmp;
+			iterator tmp = first;
+
+			for ( ; first != last; first++) {
+				index = first - begin();
+				_allocator.destroy(&_data[index]);
+				_size--;
+			}
+			for ( ; tmp != end(); tmp++) {
+				index = last - begin();
+				index_tmp = tmp - begin();
+				_allocator.construct(&_data[index_tmp], _data[index]);
+				_allocator.destroy(&_data[index]);
+				last++;
+			}
+			return _data;
+		}
+
 		void 	swap(vector &toSwap) {
 			std::swap(_allocator, toSwap._allocator);
 			std::swap(_data, toSwap._data);
@@ -287,5 +349,78 @@ namespace ft {
 	};
 
 } // ft
+
+/* **************************************************************************** */
+/*									Memo										*/
+/* **************************************************************************** */
+
+/**
+		* Clear vector data array and create new one with the values between "first" and "last".
+		* Capacity can be only increased.
+		* This function use an input iterator.
+		*
+		* @param first - starting iterator
+		* @param last - ending iterator
+		* @return void
+		* template <class InputIterator>
+		* void assign (InputIterator first,
+		* 				InputIterator last,
+		* 				typename ft::enable_if<!ft::is_integral<InputIterator>::value,
+		* 				InputIterator>::type * = NULL)
+		*/
+
+
+/**
+		 * Insert into array the value "val" in "position". "position" is an iterator of its own array.
+		 *
+		 * @param position - iterator of its own array, position of the new added value
+		 * @param val - value to add
+		 * @return iterator of added element
+		 * iterator insert (iterator position, const value_type& val)
+		 */
+
+/**
+		 * Insert in array "n" elements of the value "val" in "position", "position" is an iterator of its own array.
+		 *
+		 * @param position - iterator of its own array, position of the new added value
+		 * @param n - number of added elements
+		 * @param val - value to add
+		 * @return void
+		 * void insert (iterator position, size_type n, const value_type& val)
+		 */
+
+/**
+		 * Insert in array, all elements pointed between "first" and "last" in "position", "position" is an iterator of its own array.
+		 * This function use an input iterator.
+		 *
+		 * @param position - iterator of its own array, position of the new added value
+		 * @param first - starting iterator
+		 * @param last - ending iterator
+		 * @return void
+		 * template <class InputIterator>
+		 * void insert (iterator position,
+		 * 				InputIterator first,
+		 * 				InputIterator last,
+		 * 				typename ft::enable_if<!ft::is_integral<InputIterator>::value,
+		 * 				InputIterator>::type * = NULL)
+		 */
+
+/**
+		 * Delete in array the element at "position".
+		 *
+		 * @param position - iterator of its own array, position of deleted value
+		 * @return iterator of the first element of array
+		 * iterator erase (iterator position)
+		 */
+
+/**
+		 * Delete all elements pointed between "first" and "last".
+		 * "first" and "last" are iterators of its own array.
+		 *
+		 * @param first - starting iterator
+		 * @param last - ending iterator
+		 * @return iterator of the first element of array
+		 * iterator erase (iterator first, iterator last)
+		 */
 
 #endif //FT_CONTAINER_VECTOR_HPP
