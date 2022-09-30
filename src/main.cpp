@@ -8,10 +8,12 @@
 #include <map>
 #include <fstream>
 #include <sys/stat.h>
-#include "../vector.hpp"
-#include "../stack.hpp"
+#include "../incs/Vector/vector.hpp"
+#include "../incs/Map/map.hpp"
+#include "../incs/stack.hpp"
 #include "./tests/vector/test_vector.hpp"
 #include "./tests/stack/test_stack.hpp"
+#include "./tests/map/test_map.hpp"
 
 #if 1
 	int main(int argc, char** argv)
@@ -40,8 +42,8 @@
 		{
 			if (tests_type == -1 || tests_type == 0)
 				my_file_vector.open("./result/vector/MyVector.txt");
-//			if (tests_type == -1 || tests_type == 1)
-//				my_file_map.open("result/map/MyMap.txt");
+			if (tests_type == -1 || tests_type == 1)
+				my_file_map.open("result/map/MyMap.txt");
 			if (tests_type == -1 || tests_type == 2)
 				my_file_stack.open("result/stack/MyStack.txt");
 		}
@@ -49,8 +51,8 @@
 		{
 			if (tests_type == -1 || tests_type == 0)
 				file_vector.open("result/vector/RealVector.txt");
-//			if (tests_type == -1 || tests_type == 1)
-//				file_map.open("result/map/RealMap.txt");
+			if (tests_type == -1 || tests_type == 1)
+				file_map.open("result/map/RealMap.txt");
 			if (tests_type == -1 || tests_type == 2)
 				file_stack.open("result/stack/RealStack.txt");
 		}
@@ -71,21 +73,21 @@
 			}
 		}
 
-//	/**
-//	 * TESTS MAP
-//	 */
-//		if (tests_type == -1 || tests_type == 1)
-//		{
-//			for (size_t seed = 0; seed < 50; seed++)
-//			{
-//				srand(seed);
-//				rand_value = rand() % 100;
-//				if (my_tests != 1)
-//					test_map<std::map<int, char> >(rand_value, seed, file_map);
-//				if (my_tests != 0)
-//					test_map<ft::map<int, char> >(rand_value, seed, my_file_map);
-//			}
-//		}
+	/**
+	 * TESTS MAP
+	 */
+		if (tests_type == -1 || tests_type == 1)
+		{
+			for (size_t seed = 0; seed < 50; seed++)
+			{
+				srand(seed);
+				rand_value = rand() % 100;
+				if (my_tests != 1)
+					test_map<std::map<int, char> >(rand_value, seed, file_map);
+				if (my_tests != 0)
+					test_map<ft::map<int, char> >(rand_value, seed, my_file_map);
+			}
+		}
 
 	/**
 	 * TESTS STACK
