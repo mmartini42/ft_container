@@ -13,10 +13,7 @@ namespace ft {
 	struct enable_if {};
 
 	template<class T>
-	struct enable_if<true, T>
-	{
-		typedef T type;
-	};
+	struct enable_if<true, T> {	typedef T type;	};
 
 } // ft
 

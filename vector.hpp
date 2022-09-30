@@ -7,13 +7,14 @@
 #ifndef FT_CONTAINER_VECTOR_HPP
 #define FT_CONTAINER_VECTOR_HPP
 
-#include <iostream>
-#include <iomanip>
-#include <memory>
+//#include <iostream>
+//#include <iomanip>
+//#include <memory>
 
 #include "iterator/iterator.hpp"
 #include "iterator/enable_if.hpp"
 #include "iterator/is_integral.hpp"
+#include "Algorithm.hpp"
 
 namespace ft {
 
@@ -34,19 +35,19 @@ namespace ft {
 		typedef ft::reverse_iterator<const_iterator>            const_reverse_iterator;
 		typedef ft::reverse_iterator<iterator>                  reverse_iterator;
 
-	private:
+	public:
 		allocator_type	_allocator;
 		value_type		*_data;
 		size_type		_capacity;
 		size_type		_size;
 
 	public:
-		explicit vector( const allocator_type& alloc = allocator_type()):
-				_allocator(alloc),
-				_capacity(1),
-				_data(alloc.allocate(_capacity)),
-				_size(0)
-				{}
+		explicit vector(const allocator_type& alloc = allocator_type()): _allocator(alloc)
+		{
+			_capacity = 1;
+			_size = 0;
+			_data = _allocator.allocate(_capacity);
+		}
 
 		explicit vector(size_type n, const value_type& value = value_type(),
 						const allocator_type& alloc = allocator_type()): _allocator(alloc)	{
@@ -83,7 +84,7 @@ namespace ft {
 		vector &operator=(vector const &rhs) {
 			if (this != &rhs) {
 				_capacity = rhs._capacity;
-				_allocator = rhs._allocatorator;
+				_allocator = rhs._allocator;
 				_size = rhs._size;
 				_data = rhs._data;
 			}
@@ -103,9 +104,10 @@ namespace ft {
 		const_reverse_iterator	rend()	 const	{ return const_reverse_iterator(&_data[0]); }
 
 		size_type	size()		 const 	{ return _size; }
-		size_type	max_size()			{ return  std::numeric_limits<size_type>::max() / sizeof(value_type); }
+		size_type	max_size() const { return std::numeric_limits<size_type>::max() / sizeof(value_type); }
 		size_type	capacity()	const	{ return _capacity; }
-		bool 		empty()		const 	{ _size == 0; }
+		bool 		empty()		const 	{ _size == 0 ? true : false; }
+		allocator_type	get_allocator() const { return _allocator; }
 
 		void	resize(size_type n, value_type val = value_type()) {
 			if (_capacity < n) {
@@ -347,6 +349,61 @@ namespace ft {
 		}
 
 	};
+
+	template<class T, class G>
+	bool	operator==(const vector<T, G> &lhs, const vector<T,G> &rhs) {
+		if (lhs.max_size() == rhs.max_size()
+			&& lhs.get_allocator() == rhs.get_allocator()
+			&& lhs.size() == rhs.size()
+			&& lhs.capacity() == rhs.capacity()) {
+			for (size_t i = 0; i < lhs.size(); i++)	{
+				if (lhs.at(i) != rhs.at(i))
+					return false;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	template<class T, class G>
+	bool	operator!=(const vector<T, G> &lhs, const vector<T,G> &rhs) {
+		if (lhs.max_size() == rhs.max_size()
+			&& lhs.get_allocator() == rhs.get_allocator()
+			&& lhs.size() == rhs.size()
+			&& lhs.capacity() == rhs.capacity()) {
+			for (size_t i = 0; i < lhs.size(); i++)	{
+				if (lhs.at(i) != rhs.at(i))
+					return true;
+			}
+			return false;
+		}
+		return true;
+	}
+
+	template<class T, class G>
+	bool	operator<=(const vector<T,G>& lhs, const vector<T,G>& rhs) {
+		return (lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()) || lhs == rhs);
+	}
+
+	template<class T, class G>
+	bool	operator>=(const vector<T,G>& lhs, const vector<T,G>& rhs) {
+		return (!lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()) || lhs == rhs);
+	}
+
+	template<class T, class G>
+	bool 	operator<(const vector<T,G>& lhs, const vector<T,G>& rhs) {
+		return lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+	}
+
+	template<class T, class G>
+	bool	operator>(const vector<T,G>& lhs, const vector<T,G>& rhs) {
+		return (!lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()) && lhs != rhs);
+	}
+
+	template<class T, class G>
+	void	swap(vector<T,G> &x, vector<T,G> &y) {
+		x.swap(y);
+	}
 
 } // ft
 

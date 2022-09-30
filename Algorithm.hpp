@@ -8,11 +8,10 @@
 #define FT_CONTAINER_ALGORITHM_HPP
 
 namespace ft {
+
 	template < class it1, class it2 >
-	bool	lexicographical_compare (it1 first1, it1 last1, it2 first2, it2 last2)
-	{
-		while (first1 != last1)
-		{
+	bool	lexicographical_compare (it1 first1, it1 last1, it2 first2, it2 last2) {
+		while (first1 != last1)	{
 			if (first2 == last2 || *first2 < *first1)
 				return false;
 			else if (*first1 < *first2)
@@ -24,10 +23,8 @@ namespace ft {
 	}
 
 	template < class it1, class it2, class Compare >
-	bool	lexicographical_compare (it1 first1, it1 last1, it2 first2, it2 last2, Compare comp)
-	{
-		while (first1 != last1)
-		{
+	bool	lexicographical_compare(it1 first1, it1 last1, it2 first2, it2 last2, Compare comp) {
+		while (first1 != last1) {
 			if (first2 == last2 || comp(*first2, *first1))
 				return false;
 			else if (comp(*first1, *first2))
@@ -37,6 +34,7 @@ namespace ft {
 		}
 		return (first2 != last2);
 	}
+
 } //ft
 
 /* **************************************************************************** */

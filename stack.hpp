@@ -26,10 +26,9 @@ namespace ft {
 
 	public:
 		explicit stack<T, Container>(const Container &container = Container()) : c(container) {}
+		explicit stack<T, Container>(const stack<T> &src) { *this = src; }
 
-		stack<T, Container>(const stack<T> &src) { *this = src; }
-
-		~stack<T, Container>(void) {}
+		~stack<T, Container>() {};
 
 		stack &operator=(const stack<T> &ref) {
 			if (this->c != &ref)
@@ -44,17 +43,17 @@ namespace ft {
 		friend bool operator>(const stack<T, Container> &lhs, const stack<T, Container> &rhs) { return lhs.c > rhs.c; }
 		friend bool operator<(const stack<T, Container> &lhs, const stack<T, Container> &rhs) { return lhs.c < rhs.c; }
 
-		reference top(void) { return c.back(); }
+		reference top() { return c.back(); }
 
-		const_reference top(void) const { return c.back(); }
+		const_reference top() const { return c.back(); }
 
-		bool empty(void) const { return c.empty(); }
+		bool empty() const { return c.empty(); }
 
-		size_type size(void) const { return c.size(); }
+		size_type size() const { return c.size(); }
 
 		void push(const value_type &value) { c.push_back(value); }
 
-		void pop(void) { c.pop(); }
+		void pop() { c.pop_back(); }
 	};
 } //ft
 #endif //FT_CONTAINER_STACK_HPP
