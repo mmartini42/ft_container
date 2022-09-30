@@ -42,8 +42,7 @@ namespace ft {
 		size_type		_size;
 
 	public:
-		explicit vector(const allocator_type& alloc = allocator_type()): _allocator(alloc)
-		{
+		explicit vector(const allocator_type& alloc = allocator_type()): _allocator(alloc) {
 			_capacity = 1;
 			_size = 0;
 			_data = _allocator.allocate(_capacity);
@@ -106,7 +105,7 @@ namespace ft {
 		size_type	size()		 const 	{ return _size; }
 		size_type	max_size() const { return std::numeric_limits<size_type>::max() / sizeof(value_type); }
 		size_type	capacity()	const	{ return _capacity; }
-		bool 		empty()		const 	{ _size == 0 ? true : false; }
+		bool 		empty()		const 	{ return (_size == 0 ? true : false); }
 		allocator_type	get_allocator() const { return _allocator; }
 
 		void	resize(size_type n, value_type val = value_type()) {
@@ -205,7 +204,7 @@ namespace ft {
 
 		void 	pop_back() {
 			_allocator.destroy(&_data[_size - 1]);
-			_size;
+			--_size;
 		}
 
 		iterator	insert(iterator position, const value_type& val) {
