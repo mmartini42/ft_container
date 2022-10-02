@@ -61,12 +61,34 @@ namespace ft {
 			return *this;
 		}
 
-		uint32_t	getSize() const { return _size; }
-		node*		getRoot() const { return _root; }
-		node*		getEmptyNode() const { return _emptyNode; }
+		uint32_t		getSize() const { return _size; }
+		node*			getRoot() const { return _root; }
+		node*			getEmptyNode() const { return _emptyNode; }
 		allocator_type	getAlloc() const { return _alloc; }
 
-		void	rotateLeft(node* x) {
+		node*	getParent(node* x) { return x->parent; }
+		node*	getGrandParent(node* x) {
+			node	*y = getParent(x);
+			if (y == NULL) { return NULL; }
+			return getParent(y);
+		}
+		node*	getSibling(node* x) {
+			node*	y = parent(x);
+
+			if (y == NULL) { return NULL; }
+			else if (y->left == x) { return y->right; }
+			else { return y->left; }
+		}
+		node*	getUncle(node* x) {
+			node*	y = getParent(x);
+			node*	tmp = getGrandParent(x);
+
+			if (tmp == NULL) { return NULL; }
+			return getSibling(y);
+		}
+
+	private:
+		void	_rotateLeft(node* x) {
 			node*	y = x->right;
 
 			x->right = y->left;
@@ -82,7 +104,7 @@ namespace ft {
 			y->left = x;
 			x->parent = y;
 		}
-		void	rotateRight(node* x) {
+		void	_rotateRight(node* x) {
 			node*	y = x->left;
 
 			x->left = y->right;
@@ -99,6 +121,34 @@ namespace ft {
 			x->left = y;
 		}
 
+		void	_insertRecursive(node* root, node* x) {
+			if (root) {
+				if (x->data._first < root->data._first) {
+					if (root->left) { _insertRecursive(root->left, x); return; }
+					else
+						root->left = x;
+				} else {
+					if (root->right) { _insertRecursive(root->right, x); return; }
+					else
+						root->right = x;
+				}
+			}
+			x->parent	= root;
+			x->left 	= NULL;
+			x->left 	= NULL;
+			x->color	= red;
+		}
+
+		void	_swapNode(node* t, node* g) {
+			if (t->parent == NULL)
+				_root = g;
+			else if (t == getParent(t)->left) { getParent(t)->left = g; }
+			else { getParent(t)->right = g; }
+			if (t->parent == NULL) { g->parent = NULL; }
+			else if (g != NULL) { g->parent = t->parent; }
+		}
+
+	public:
 		void	clear(node* n) {
 			if (n != NULL && (n->color == black || n->color == red)) {
 				if (n->left)

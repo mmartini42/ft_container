@@ -17,11 +17,8 @@ namespace ft {
         typedef T1  first_type;
         typedef T2  second_type;
 
-    private:
         first_type  _first;
         second_type _second;
-
-    public:
 
         pair() : _first(), _second() {}
 
