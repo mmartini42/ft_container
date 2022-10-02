@@ -37,12 +37,12 @@ namespace ft {
 
 		node_ptr	getNode() const { return _ptr; }
 
-		mapIterator&	operator++(){
+		mapIterator&	operator++() {
 			_ptr = nextIter(_ptr);
 			return	*this;
 		}
 
-		mapIterator&	operator--(){
+		mapIterator&	operator--() {
 			_ptr = prevIter(_ptr);
 			return *this;
 		}
