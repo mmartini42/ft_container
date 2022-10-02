@@ -148,6 +148,53 @@ namespace ft {
 			else if (g != NULL) { g->parent = t->parent; }
 		}
 
+		node*	_findFromNode(Key key, node* x) {
+			if (x == NULL)
+				return NULL;
+			else if (x->data._first == key) {
+				if (x->color == -1) { return NULL; }
+				return x;
+			}
+			else if (x->data._first >= key) { return _findFromNode(key, x->left); }
+			else if (x->data._first <= key) { return _findFromNode(key, x->right); }
+			return NULL;
+		}
+
+		void	_insertBalanced(node* x) {
+			node	*p,*g;
+
+			if (getParent(x) == NULL || getParent(x) == _emptyNode) {
+				if (getParent(x) == _emptyNode)
+					_root = x;
+				x->color = black;
+			} else if (getParent(x)->color == black)
+				return;
+			else if (getUncle(x) != NULL && getUncle(x)->color == red) {
+				getParent(x)->color = black;
+				getUncle(x)->color = black;
+				g = getGrandParent(x);
+				g->color = red;
+				_insertBalanced(g);
+			} else {
+				p = getParent(x);
+				g = getGrandParent(x);
+				if (g->left != NULL && g->left->right != NULL && x == g->left->right) {
+					_rotateLeft(p);
+					x = x->left;
+				} else if (g->right != NULL && g->right->left != NULL && x == g->right->left) {
+					_rotateRight(p);
+					x = x->right;
+				}
+				p = getParent(x);
+				g = getGrandParent(x);
+				if (x == p->left) { _rotateRight(x); }
+				else { _rotateLeft(x); }
+				p->color = black;
+				g->color = red;
+			}
+		}
+
+
 	public:
 		void	clear(node* n) {
 			if (n != NULL && (n->color == black || n->color == red)) {
