@@ -8,12 +8,20 @@
 #define FT_CONTAINER_MAP_HPP
 
 #include <algorithm>
+#include "iterator/iterator.hpp"
 #include "Pair.hpp"
+#include "TreeStruct.hpp"
 
 namespace ft {
 
-    template<class Key, class T, class Compare = std::less<Key>, class Allocator = std::allocator<ft::pair<Key, T> > >
+    template<class Key,
+			class T,
+					class Compare = std::less<Key>,
+							class Allocator = std::allocator<ft::pair<Key, T> > >
 	class map {
+		typedef Allocator                   allocator_type;
+		typedef ft::pair<T,Key>             value_type;
+		typedef ft::node<value_type>		node;
 
 	};
 
