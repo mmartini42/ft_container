@@ -253,6 +253,45 @@ namespace ft {
 			}
 		}
 
+		node*	_insertFromRoot(node* root, node* x) {
+			_insertRecursive(root, x);
+			++_size;
+			_insertBalanced(x);
+			root = x;
+			while (getParent(root) != NULL)
+				root = getParent(root);
+			return root;
+		}
+
+		void	_replaceNullNode() {
+			node *tmp = _root;
+
+			if (_emptyNode == NULL)	{
+				_emptyNode = _alloc.allocate(1);
+				_alloc.construct(_emptyNode, node(NULL, ft::pair<const Key, T>(1, 0)));
+				_emptyNode->color = -1;
+			} if (_root == NULL) {
+				_root = _emptyNode;
+				return;
+			}
+			while (tmp->right != NULL)
+				tmp = tmp->right;
+			tmp->right = _emptyNode;
+			_emptyNode->parent = tmp;
+		}
+
+		void 	_detachNullNode() {
+			if (_emptyNode == NULL) {
+				_emptyNode = _alloc.allocate(1);
+				_alloc.construct(_emptyNode, node(NULL, ft::pair<const Key, T>(1, 0)));
+				_emptyNode->color = -1;
+			} if (_emptyNode->parent != NULL && _emptyNode->parent->right == _emptyNode) {
+				_emptyNode->parent->right = NULL;
+				_emptyNode->parent = NULL;
+			} if (_emptyNode == _root)
+				_root = NULL;
+		}
+
 	public:
 		void	clear(node* n) {
 			if (n != NULL && (n->color == black || n->color == red)) {
@@ -275,6 +314,42 @@ namespace ft {
 			}
 		}
 
+		/** TODO: insert ...
+		 * Insert pair "p" in root.
+		 *
+		 * @param p - pair pointer
+		 * @return true if pair inserted
+		 */
+		bool	insert(ft::pair<const Key, T> *p) {
+
+		}
+
+		bool insert(const ft::pair<const Key, T> *p) {
+
+		}
+
+		/** TODO: insert ...
+		 * Insert pair "p" at position in tree.
+		 * Start insertion from "position".
+		 *
+		 * @param position - pair
+		 * @param p - pair pointer
+		 * @return node inserted
+		 */
+		node *insert(ft::pair<const Key, T> position, const ft::pair<const Key, T> *p) {
+
+		}
+
+		/** TODO
+		 * Delete node with "key".
+		 * After node are deleted, balance tree.
+		 *
+		 * @param key - key of node
+		 * @return true if key erased
+		 */
+		bool	erase(Key key) {
+
+		}
 	};
 
 } // ft
@@ -316,6 +391,29 @@ namespace ft {
 		 * @param n - starting node
 		 * @return void
 		 * void		_insertBalanced(node* x)
+		 */
+
+/**
+		 * Insert in "root" the node "n" and balance the tree.
+		 *
+		 * @param root - root in whitch we want to insert the node
+		 * @param n - node to insert
+		 * @return new root
+		 * node*	_insertFromRoot(node* root, node* x)
+		 */
+
+/**
+		 * Replace end node to the end of the tree
+		 *
+		 * @return void
+		 * void	_replaceNullNode()
+		 */
+
+/**
+		 * Detach end node
+		 *
+		 * @return void
+		 * void 	_detachNullNode()
 		 */
 
 #endif //FT_CONTAINER_RBTREE_HPP
