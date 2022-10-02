@@ -194,6 +194,64 @@ namespace ft {
 			}
 		}
 
+		void 	_eraseBalanced(node* x) {
+			node*	tmp = x;
+			node*	y	= x;
+			node*	p	= getParent(tmp);
+
+			while (tmp != _root && tmp->color == black && y != NULL) {
+				if (tmp == p->left) {
+					y = p->right;
+
+					if (y != NULL && y->color == red) {
+						y->color = black;
+						p->color = red;
+						_rotateLeft(p);
+						y = p->right;
+					} if (y != NULL) {
+						if ((y->left || y->left->color == black) && (y->right || y->right->color == black)) {
+							y->color = red;
+							tmp = p;
+						} else {
+							if (y->right->color == black) {
+								y->left->color = black;
+								y->color = red;
+								_rotateRight(y);
+								y = p->right;
+							}
+						}
+					}
+				} else {
+					y = p->left;
+
+					if (y !=  NULL && y->color == red) {
+						y->color = black;
+						p->color = red;
+						_rotateRight(p);
+						y = p->left;
+					} if (y != NULL) {
+						if ((y->left || y->left->color == black) && (y->right || y->right->color == black)) {
+							y->color = red;
+							tmp = p;
+						} else {
+							if (y->left != NULL && y->left->color == black) {
+								if (y->right != NULL) { y->right->color = black; }
+								y->color = red;
+								_rotateLeft(y);
+								y = p->left;
+							}
+							y->color = p->color;
+							p->color = black;
+							if (y->left != NULL)
+								y->left->color = black;
+							_rotateRight(p);
+							tmp = _root;
+						}
+					}
+				}
+				if (tmp->color != -1) { tmp->color = black; }
+			}
+		}
 
 	public:
 		void	clear(node* n) {
@@ -221,6 +279,43 @@ namespace ft {
 
 } // ft
 
+/* **************************************************************************** */
+/*									Memo										*/
+/* **************************************************************************** */
 
+/**
+		 * Find the best place of the node "n" and insert it in tree.
+		 *
+		 * @param root - actual pointer of tree's node
+		 * @param n - node to add
+		 * @return void
+		 * void	_insertRecursive(node* root, node* x)
+		 */
+
+/**
+		 * Swap two nodes in tree.
+		 *
+		 * @param u - first node
+		 * @param v - second node
+		 * @return void
+		 * void		_swapNode(node* t, node* g)
+		 */
+
+/**
+		 * Find the node with "key" number from "n".
+		 *
+		 * @param key - Key to search for
+		 * @param n - starting node
+		 * @return found node
+		 * node*	_findFromNode(Key key, node* x)
+		 */
+
+/**
+		 * Balance tree after insert node.
+		 *
+		 * @param n - starting node
+		 * @return void
+		 * void		_insertBalanced(node* x)
+		 */
 
 #endif //FT_CONTAINER_RBTREE_HPP

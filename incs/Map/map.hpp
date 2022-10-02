@@ -11,6 +11,7 @@
 #include "iterator/iteratorMap.hpp"
 #include "Pair.hpp"
 #include "TreeStruct.hpp"
+#include "rbTree.hpp"
 
 namespace ft {
 
