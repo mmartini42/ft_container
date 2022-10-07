@@ -8,6 +8,7 @@
 #define FT_CONTAINER_RBTREE_HPP
 
 #include <memory>
+#include <stdexcept>
 #include "Pair.hpp"
 #include "TreeStruct.hpp"
 
@@ -314,43 +315,141 @@ namespace ft {
 			}
 		}
 
-		/** TODO: insert ...
-		 * Insert pair "p" in root.
-		 *
-		 * @param p - pair pointer
-		 * @return true if pair inserted
-		 */
+		node*	createNode(const ft::pair<const Key, T> *p) {
+			node*	n = _alloc.allocate(1);
+			_alloc.template construct(n, node(NULL, *p));
+			return n;
+		}
+
+		node*	find(Key key) {
+			node *tmp = _findFromNode(key, _root);
+			return tmp;
+		}
+
+		node*	findMin(node *n) {
+			assert(n != NULL);
+			node *tmp = n;
+			while (tmp->left != NULL)
+				tmp = tmp->left;
+			return tmp;
+		}
+
+		node *findMax(node *n) {
+			assert(n != NULL);
+			node 	*tmp = n;
+			while (tmp->right != NULL && tmp->right->color != -1)
+				tmp = tmp->right;
+			return tmp;
+		}
+
 		bool	insert(ft::pair<const Key, T> *p) {
+			_detachNullNode();
 
+			node*	tmp =  NULL;
+			if (_findFromNode(p->_first, _root) == NULL) {
+				tmp = _insertFromRoot(_root, createNode(p));
+			} else {
+				_replaceNullNode();
+				return false;
+			} if (tmp == NULL) {
+				_replaceNullNode();
+				return false;
+			}
+			_root = tmp;
+			_replaceNullNode();
+			return true;
 		}
 
-		bool insert(const ft::pair<const Key, T> *p) {
+		bool 	insert(const ft::pair<const Key, T> *p) {
+			_detachNullNode();
 
+			node*	tmp =  NULL;
+			if (_findFromNode(p->_first, _root) == NULL) {
+				tmp = _insertFromRoot(_root, createNode(p));
+			} else {
+				_replaceNullNode();
+				return false;
+			} if (tmp == NULL) {
+				_replaceNullNode();
+				return false;
+			}
+			_root = tmp;
+			_replaceNullNode();
+			return true;
 		}
 
-		/** TODO: insert ...
-		 * Insert pair "p" at position in tree.
-		 * Start insertion from "position".
-		 *
-		 * @param position - pair
-		 * @param p - pair pointer
-		 * @return node inserted
-		 */
-		node *insert(ft::pair<const Key, T> position, const ft::pair<const Key, T> *p) {
-
+		node*	insert(ft::pair<const Key, T> position, const ft::pair<const Key, T> *p) {
+			_detachNullNode();
+			node *tmp = _insertFromRoot(find(position.first), createNode(p));
+			_replaceNullNode();
+			return tmp;
 		}
 
-		/** TODO
-		 * Delete node with "key".
-		 * After node are deleted, balance tree.
-		 *
-		 * @param key - key of node
-		 * @return true if key erased
-		 */
 		bool	erase(Key key) {
+			node *z;
+			z = find(key);
+			node *y = z;
+			node *x;
 
+			if (z == _emptyNode || z == NULL)
+				return false;
+			int y_original_color = y->color;
+			if (z->left == NULL) {
+				x = z->right;
+				_swapNode(z, z->right);
+			} else if (z->right == NULL || z->right == _emptyNode) {
+				x = z->left;
+				_swapNode(z, z->left);
+			} else {
+				y = findMin(z->right);
+				y_original_color = y->color;
+				x = y->right;
+				if (x != NULL && y->parent == z)
+					x->parent = y;
+				else if (z->right != NULL) {
+					_swapNode(y, y->right);
+					y->right = z->right;
+					if (z->right != NULL)
+						z->right->parent = y;
+				}
+				_swapNode(z, y);
+				y->left = z->left;
+				if (y->left != NULL)
+					y->left->parent = y;
+				y->color = z->color;
+			}
+			delete z;
+			z = NULL;
+			_size--;
+			_emptyNode->color = -1;
+			if (y->color == -1 && y->parent != _root) {
+				y->parent->right = y->left;
+				y->left->parent = y->parent;
+				y->left = NULL;
+				y->right = NULL;
+			} if (y_original_color == black && x != NULL)
+				_eraseBalanced(x);
+			_detachNullNode();
+			_replaceNullNode();
+			return true;
 		}
+
 	};
+
+	template < class Key, class T >
+	void print_tree(ft::TreeStruct< ft::pair<const Key, T> > *n) {
+		if (n != NULL) {
+			if (n->left != NULL)
+				print_tree(n->left);
+			if (n != NULL && n->color != -1)
+				std::cout << "Data:[" << n->data.first
+				<< "," << n->data.second << "] | color:"
+				<< ((n->color == 0) ? "BLACK" : "RED")
+				<< std::endl;
+			if (n->right != NULL)
+				print_tree(n->right);
+		}
+	}
 
 } // ft
 
@@ -364,7 +463,7 @@ namespace ft {
 		 * @param root - actual pointer of tree's node
 		 * @param n - node to add
 		 * @return void
-		 * void	_insertRecursive(node* root, node* x)
+		 * void		_insertRecursive(node* root, node* x)
 		 */
 
 /**
@@ -406,7 +505,7 @@ namespace ft {
 		 * Replace end node to the end of the tree
 		 *
 		 * @return void
-		 * void	_replaceNullNode()
+		 * void		_replaceNullNode()
 		 */
 
 /**
@@ -415,5 +514,33 @@ namespace ft {
 		 * @return void
 		 * void 	_detachNullNode()
 		 */
+
+/**
+		 * Insert pair "p" in root.
+		 *
+		 * @param p - pair pointer
+		 * @return true if pair inserted
+		 * bool		insert(ft::pair<const Key, T> *p)
+		 * bool 	insert(const ft::pair<const Key, T> *p)
+		 */
+
+/**
+		 * Insert pair "p" at position in tree.
+		 * Start insertion from "position".
+		 *
+		 * @param position - pair
+		 * @param p - pair pointer
+		 * @return node inserted
+		 * node*	insert(ft::pair<const Key, T> position, const ft::pair<const Key, T> *p)
+		 */
+
+/**
+	 * Delete node with "key".
+	 * After node are deleted, balance tree.
+	 *
+	 * @param key - key of node
+	 * @return true if key erased
+	 * bool		erase(Key key)
+	 */
 
 #endif //FT_CONTAINER_RBTREE_HPP
