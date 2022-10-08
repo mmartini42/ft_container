@@ -57,6 +57,37 @@ namespace ft {
 			bool operator()( const value_type& lhs, const value_type& rhs ) const { return _comp(lhs.first, rhs.first);}
 		};
 
+		explicit	map(const key_compare& comp = key_compare(), const new_alloc& alloc = new_alloc()): _alloc(alloc), _comp(comp) {
+			_tree = _alloc.allocate(1);
+			_alloc.construct(_tree, RBTree<Key, T>());
+		}
+
+		template<class InputIterator>
+		map(InputIterator first, InputIterator last, const key_compare& comp = key_compare(), const new_alloc& alloc = new_alloc()): _alloc(alloc), _comp(comp)	{
+			_tree =_alloc.allocate(1);
+			_alloc.construct(_tree, RBTree<Key, T>());
+			for ( ; first != last; first++)
+				_tree->insert(first);
+		}
+
+		map(const map &x) {
+			_alloc = x._alloc;
+			_comp = x._comp;
+			_tree =_alloc.allocate(1);
+			_alloc.construct(_tree, RBTree<Key, T>());
+			insert(x.begin(), x.end());
+		}
+
+		~map() { clear(); }
+
+		map&	operator= (const map& x) {
+			if (&x == this)
+				return (*this);
+			clear();
+			insert(x.begin(), x.end());
+			return *this;
+		}
+
 	};
 
 } // ft
