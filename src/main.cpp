@@ -1,5 +1,9 @@
 // Copyright (c) 2022 mmartini42 <mathmart@42lyon.fr>.
 
+//
+// Created by mathis martini on 27/09/2022.
+//
+
 #include <string>
 #include <iostream>
 #include <deque>
@@ -30,7 +34,7 @@
 		
 		mkdir("./result", 0777);
 		mkdir("./result/vector", 0777);
-//		mkdir("./result/map", 0777);
+		mkdir("./result/map", 0777);
 		mkdir("./result/stack", 0777);
 
 		if(argc == 2)
@@ -140,7 +144,7 @@
 	public:
 		MutantStack() {}
 		MutantStack(const MutantStack<T>& src) { *this = src; }
-		MutantStack<T>& operator=(const MutantStack<T>& rhs) 
+		MutantStack<T>& operator=(const MutantStack<T>& rhs)
 		{
 			this->c = rhs.c;
 			return *this;
@@ -196,7 +200,7 @@
 		{
 			//NORMAL ! :P
 		}
-		
+
 		for (int i = 0; i < COUNT; ++i)
 		{
 			map_int.insert(ft::make_pair(rand(), rand()));

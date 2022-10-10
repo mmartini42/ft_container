@@ -1,546 +1,473 @@
-// Copyright (c) 2022 mmartini42 <mathmart@42lyon.fr>.
+#ifndef RBTREE_HPP
+# define RBTREE_HPP
 
-//
-// Created by Mathis Martini on 10/2/22.
-//
-
-#ifndef FT_CONTAINER_RBTREE_HPP
-#define FT_CONTAINER_RBTREE_HPP
-
+#include <iostream>
+#include <iterator>
+#include <stdexcept> 
 #include <memory>
-#include <stdexcept>
+#include <algorithm>
+#include <functional>
 #include "Pair.hpp"
 #include "TreeStruct.hpp"
 
-namespace ft {
+#define BLACK 0
+#define RED 1
 
-    template<class Key, class T, class A = std::allocator<ft::TreeStruct<pair<const Key, T> > > >
-    class RBTree {
+namespace ft
+{
 
-    public:
-        typedef std::allocator<ft::TreeStruct<pair<const Key, T> > >  allocator_type;
-		typedef A		A_type;
-        typedef typename ft::TreeStruct<ft::pair<const Key, T> > node;
+	template < class Key, class T, class A = std::allocator< ft::BiTreeNode< ft::pair<const Key, T> > > >
+	class RBTree
+	{
+		public:
+			typedef A allocator_type;
+			typedef typename ft::BiTreeNode< ft::pair<const Key, T> > node;
+			
+		private:
+			node *_root;
+			node *_emptyNode;
+			size_t _size;
 
-    private:
-        node*			_root;
-		node*			_emptyNode;
-		uint32_t		_size;
-        allocator_type	_alloc;
+			void _rotateLeft(node *x) {
+				node *y = x->right;
 
-	public:
-		explicit RBTree(const allocator_type& alloc = allocator_type()) : _root(NULL), _size(0), _alloc(alloc) {
-			_emptyNode = _alloc.allocate(1);
-			_alloc.construct(_emptyNode, node(NULL, ft::pair<const Key, T>(1, 0)));
-			_emptyNode->color = -1;
-		}
+				x->right = y->left;
+				if (y->left != NULL)
+					y->left->parent = x;
 
-		explicit RBTree(node* node, const allocator_type& alloc = allocator_type()) : _root(node), _size(0), _alloc(alloc) {
-			_emptyNode = _alloc.allocate(1);
-			_alloc.construct(_emptyNode, node(NULL, ft::pair<const Key, T>(1, 0)));
-			_emptyNode->color = -1;
-		}
+				y->parent = x->parent;
 
-		RBTree(const RBTree& ref) : _root(ref._root), _size(ref._size), _alloc(ref._alloc) {
-			_emptyNode = _alloc.allocate(1);
-			_alloc.construct(_emptyNode, node(NULL, ft::pair<const Key, T>(1, 0)));
-			_emptyNode->color = -1;
-		}
+				if (x->parent == NULL)
+					_root = y;
+				else if (x == x->parent->left)
+					x->parent->left = y;
+				else
+					x->parent->right = y;
 
-		~RBTree() {
-			if (getSize() > 0 && _root != NULL) {
-				clear(_root);
-				_root = NULL;
+				y->left = x;
+				x->parent = y;
 			}
-		}
 
-		RBTree&	operator=(const RBTree<const Key, T>& ref) {
-			if (&ref == this)
-				return *this;
-			clear();
-			insert(ref.begin(), ref.end());
-			return *this;
-		}
+			void _rotateRight(node *x) {
+				node *y = x->left;
 
-		uint32_t		getSize() const { return _size; }
-		node*			getRoot() const { return _root; }
-		node*			getEmptyNode() const { return _emptyNode; }
-		allocator_type	getAlloc() const { return _alloc; }
+				x->left = y->right;
+				if (y->right != NULL)
+					y->right->parent = x;
 
-		node*	getParent(node* x) { return x->parent; }
-		node*	getGrandParent(node* x) {
-			node	*y = getParent(x);
-			if (y == NULL) { return NULL; }
-			return getParent(y);
-		}
-		node*	getSibling(node* x) {
-			node*	y = parent(x);
+				y->parent = x->parent;
 
-			if (y == NULL) { return NULL; }
-			else if (y->left == x) { return y->right; }
-			else { return y->left; }
-		}
-		node*	getUncle(node* x) {
-			node*	y = getParent(x);
-			node*	tmp = getGrandParent(x);
+				if (x->parent == NULL)
+					_root = y;
+				else if (x == x->parent->right)
+					x->parent->right = y;
+				else
+					x->parent->left = y;
 
-			if (tmp == NULL) { return NULL; }
-			return getSibling(y);
-		}
+				y->right = x;
+				x->parent = y;
+			}
 
-	private:
-		void	_rotateLeft(node* x) {
-			node*	y = x->right;
-
-			x->right = y->left;
-			if (y->left)
-				y->left->parent = x;
-			y->parent = x->parent;
-			if (!x->parent)
-				_root = y;
-			else if (x == x->parent->left)
-				x->parent->left = y;
-			else
-				x->parent->right = y;
-			y->left = x;
-			x->parent = y;
-		}
-		void	_rotateRight(node* x) {
-			node*	y = x->left;
-
-			x->left = y->right;
-			if (y->right)
-				y->right->parent = x;
-			y->parent = x->parent;
-			if (!x->parent)
-				_root = y;
-			else if (x == x->parent->right)
-				x->parent->right = y;
-			else
-				x->parent->left = y;
-			y->right = x;
-			x->left = y;
-		}
-
-		void	_insertRecursive(node* root, node* x) {
-			if (root) {
-				if (x->data._first < root->data._first) {
-					if (root->left) { _insertRecursive(root->left, x); return; }
-					else
-						root->left = x;
-				} else {
-					if (root->right) { _insertRecursive(root->right, x); return; }
-					else
-						root->right = x;
+			void _insertRecursive(node *root, node *n)	{
+				if (root != NULL) {
+					if (n->data.first < root->data.first)	{
+						if (root->left != NULL)	{
+							_insertRecursive(root->left, n);
+							return;
+						} else
+							root->left = n;
+					} else {
+						if (root->right != NULL) {
+							_insertRecursive(root->right, n);
+							return;
+						} else
+							root->right = n;
+					}
 				}
+
+				n->parent = root;
+				n->left = NULL;
+				n->right = NULL;
+				n->color = RED;
 			}
-			x->parent	= root;
-			x->left 	= NULL;
-			x->left 	= NULL;
-			x->color	= red;
-		}
 
-		void	_swapNode(node* t, node* g) {
-			if (t->parent == NULL)
-				_root = g;
-			else if (t == getParent(t)->left) { getParent(t)->left = g; }
-			else { getParent(t)->right = g; }
-			if (t->parent == NULL) { g->parent = NULL; }
-			else if (g != NULL) { g->parent = t->parent; }
-		}
+			void _swapNodes(node *u, node *v) {
+				if (u->parent == NULL)
+					_root = v;
+				else if (u == getParent(u)->left)
+					getParent(u)->left = v;
+				else
+					getParent(u)->right = v;
+				
+				if (u->parent == NULL)
+					v->parent = NULL;
+				else if (v != NULL)
+					v->parent = u->parent;
+			}
 
-		node*	_findFromNode(Key key, node* x) {
-			if (x == NULL)
+			node *_findFromNode(Key key, node *n) {
+				if (n == NULL)
+					return NULL;
+				else if (n->data.first == key) {
+					if (n->color == -1)
+						return NULL;
+					return n;
+				} else if (n->data.first >= key)
+					return _findFromNode(key, n->left);
+				else if (n->data.first <= key)
+					return _findFromNode(key, n->right);
 				return NULL;
-			else if (x->data._first == key) {
-				if (x->color == -1) { return NULL; }
-				return x;
 			}
-			else if (x->data._first >= key) { return _findFromNode(key, x->left); }
-			else if (x->data._first <= key) { return _findFromNode(key, x->right); }
-			return NULL;
-		}
 
-		void	_insertBalanced(node* x) {
-			node	*p,*g;
-
-			if (getParent(x) == NULL || getParent(x) == _emptyNode) {
-				if (getParent(x) == _emptyNode)
-					_root = x;
-				x->color = black;
-			} else if (getParent(x)->color == black)
-				return;
-			else if (getUncle(x) != NULL && getUncle(x)->color == red) {
-				getParent(x)->color = black;
-				getUncle(x)->color = black;
-				g = getGrandParent(x);
-				g->color = red;
-				_insertBalanced(g);
-			} else {
-				p = getParent(x);
-				g = getGrandParent(x);
-				if (g->left != NULL && g->left->right != NULL && x == g->left->right) {
-					_rotateLeft(p);
-					x = x->left;
-				} else if (g->right != NULL && g->right->left != NULL && x == g->right->left) {
-					_rotateRight(p);
-					x = x->right;
-				}
-				p = getParent(x);
-				g = getGrandParent(x);
-				if (x == p->left) { _rotateRight(x); }
-				else { _rotateLeft(x); }
-				p->color = black;
-				g->color = red;
+			node *_insertFromRoot(node *root, node *n) {
+				_insertRecursive(root, n);
+				_size++;
+				_insertBalanced(n);
+				root = n;
+				while(getParent(root) != NULL)
+					root = getParent(root);
+				return root;
 			}
-		}
 
-		void 	_eraseBalanced(node* x) {
-			node*	tmp = x;
-			node*	y	= x;
-			node*	p	= getParent(tmp);
-
-			while (tmp != _root && tmp->color == black && y != NULL) {
-				if (tmp == p->left) {
-					y = p->right;
-
-					if (y != NULL && y->color == red) {
-						y->color = black;
-						p->color = red;
-						_rotateLeft(p);
-						y = p->right;
-					} if (y != NULL) {
-						if ((y->left || y->left->color == black) && (y->right || y->right->color == black)) {
-							y->color = red;
-							tmp = p;
-						} else {
-							if (y->right->color == black) {
-								y->left->color = black;
-								y->color = red;
-								_rotateRight(y);
-								y = p->right;
-							}
-						}
-					}
-				} else {
-					y = p->left;
-
-					if (y !=  NULL && y->color == red) {
-						y->color = black;
-						p->color = red;
-						_rotateRight(p);
-						y = p->left;
-					} if (y != NULL) {
-						if ((y->left || y->left->color == black) && (y->right || y->right->color == black)) {
-							y->color = red;
-							tmp = p;
-						} else {
-							if (y->left != NULL && y->left->color == black) {
-								if (y->right != NULL) { y->right->color = black; }
-								y->color = red;
-								_rotateLeft(y);
-								y = p->left;
-							}
-							y->color = p->color;
-							p->color = black;
-							if (y->left != NULL)
-								y->left->color = black;
-							_rotateRight(p);
-							tmp = _root;
-						}
-					}
-				}
-				if (tmp->color != -1) { tmp->color = black; }
+			void _replaceNullNode() {
+				node *tmp = _root;
+				if (_emptyNode == NULL) {
+					_emptyNode = _alloc.allocate(1);
+					_alloc.construct(_emptyNode, node(NULL, ft::pair<const Key, T>(1, 0)));
+					_emptyNode->color = -1;
+				} if (_root == NULL) {
+					_root = _emptyNode;
+					return;
+				} while (tmp->right != NULL)
+					tmp = tmp->right;
+				tmp->right = _emptyNode;
+				_emptyNode->parent = tmp;
 			}
-		}
 
-		node*	_insertFromRoot(node* root, node* x) {
-			_insertRecursive(root, x);
-			++_size;
-			_insertBalanced(x);
-			root = x;
-			while (getParent(root) != NULL)
-				root = getParent(root);
-			return root;
-		}
-
-		void	_replaceNullNode() {
-			node *tmp = _root;
-
-			if (_emptyNode == NULL)	{
-				_emptyNode = _alloc.allocate(1);
-				_alloc.construct(_emptyNode, node(NULL, ft::pair<const Key, T>(1, 0)));
-				_emptyNode->color = -1;
-			} if (_root == NULL) {
-				_root = _emptyNode;
-				return;
-			}
-			while (tmp->right != NULL)
-				tmp = tmp->right;
-			tmp->right = _emptyNode;
-			_emptyNode->parent = tmp;
-		}
-
-		void 	_detachNullNode() {
-			if (_emptyNode == NULL) {
-				_emptyNode = _alloc.allocate(1);
-				_alloc.construct(_emptyNode, node(NULL, ft::pair<const Key, T>(1, 0)));
-				_emptyNode->color = -1;
-			} if (_emptyNode->parent != NULL && _emptyNode->parent->right == _emptyNode) {
-				_emptyNode->parent->right = NULL;
-				_emptyNode->parent = NULL;
-			} if (_emptyNode == _root)
-				_root = NULL;
-		}
-
-	public:
-		void	clear(node* n) {
-			if (n != NULL && (n->color == black || n->color == red)) {
-				if (n->left)
-					clear(n->left);
-				if (n->right)
-					clear(n->right);
-				if (n == _root) {
-					_alloc.destroy(_root);
-					_alloc.deallocate(_root, 1);
+			void _detachNullNode() {
+				if (_emptyNode == NULL) {
+					_emptyNode = _alloc.allocate(1);
+					_alloc.construct(_emptyNode, node(NULL, ft::pair<const Key, T>(1, 0)));
+					_emptyNode->color = -1;
+				} if (_emptyNode->parent != NULL && _emptyNode->parent->right == _emptyNode) {
+					_emptyNode->parent->right = NULL;
+					_emptyNode->parent = NULL;
+				} if (_emptyNode == _root)
 					_root = NULL;
+			}
+
+			void _insertBalanced(node *n) {
+				node *p;
+				node *g;
+
+				if(getParent(n) == NULL || getParent(n) == _emptyNode) {
+					if (getParent(n) == _emptyNode)
+						_root = n;
+					n->color = BLACK;
+				} else if (getParent(n)->color == BLACK)
+					return;
+				else if (getUncle(n) != NULL && getUncle(n)->color == RED) {
+					getParent(n)->color = BLACK;
+					getUncle(n)->color = BLACK;
+					g = getGrandParent(n);
+					g->color = RED;
+					_insertBalanced(g);
 				} else {
-					_alloc.destroy(n);
-					_alloc.deallocate(n, 1);
-					n = NULL;
+					p = getParent(n);
+					g = getGrandParent(n);
+					if(g->left != NULL && g->left->right != NULL && n == g->left->right) {
+						_rotateLeft(p);
+						n = n->left;
+					} else if (g->right != NULL && g->right->left != NULL && n == g->right->left) {
+						_rotateRight(p);
+						n = n->right;
+					}
+					p = getParent(n);
+					g = getGrandParent(n);
+					if (n == p->left)
+						_rotateRight(g);
+					else
+						_rotateLeft(g);
+					p->color = BLACK;
+					g->color = RED;
+				}
+			}
+
+			void _eraseBalanced(node *n) {
+				node *tmp = n;
+				node *w = n;
+				node *p = getParent(tmp);
+				while (tmp != _root && tmp->color == BLACK && w != NULL) {
+					if (tmp == p->left) {
+						w = p->right;
+						if (w != NULL && w->color == RED) {
+							w->color = BLACK;
+							p->color = RED;
+							_rotateLeft(p);
+							w = p->right;
+						} if (w != NULL) {
+							if ((w->left == NULL || w->left->color == BLACK) && (w->right == NULL || w->right->color == BLACK)) {
+								w->color = RED;
+								tmp = p;
+							} else {
+								if (w->right->color == BLACK) {
+									w->left->color = BLACK;
+									w->color = RED;
+									_rotateRight(w);
+									w = p->right;
+								}
+								w->color = p->color;
+								p->color = BLACK;
+								w->right->color = BLACK;
+								_rotateLeft(p);
+								tmp = _root;
+							}
+						}
+					} else {
+						w = p->left;
+						if (w != NULL && w->color == RED) {
+							w->color = BLACK;
+							p->color = RED;
+							_rotateRight(p);
+							w = p->left;
+						} if (w != NULL) {
+							if ((w->left == NULL || w->left->color == BLACK) && (w->right == NULL || w->right->color == BLACK)) {
+								w->color = RED;
+								tmp = p;
+							} else {
+								if (w->left != NULL && w->left->color == BLACK) {
+									if (w->right != NULL)
+										w->right->color = BLACK;
+									w->color = RED;
+									_rotateLeft(w);
+									w = p->left;
+								}
+								w->color = p->color;
+								p->color = BLACK;
+								if (w->left != NULL)
+									w->left->color = BLACK;
+								_rotateRight(p);
+								tmp = _root;
+							}
+						}
+					}
+				} if (tmp->color != -1)
+					tmp->color = BLACK;
+			}
+
+		private:
+			allocator_type _alloc;
+		
+		public:
+			RBTree(const allocator_type& alloc = allocator_type()): _root(NULL), _size(0), _alloc(alloc) {
+				_emptyNode = _alloc.allocate(1);
+				_alloc.construct(_emptyNode, node(NULL, ft::pair<const Key, T>(1, 0)));
+				_emptyNode->color = -1;
+			}
+
+			RBTree(node *n, const allocator_type& alloc = allocator_type()): _root(n), _size(0), _alloc(alloc) {
+				_emptyNode = _alloc.allocate(1);
+				_alloc.construct(_emptyNode, node(NULL, ft::pair<const Key, T>(1, 0)));
+				_emptyNode->color = -1;
+			}
+
+			RBTree(RBTree const &instance): _root(instance._root), _size(0), _alloc(instance._alloc) {
+				_emptyNode = _alloc.allocate(1);
+				_alloc.construct(_emptyNode, node(NULL, ft::pair<const Key, T>(1, 0)));
+				_emptyNode->color = -1;
+			}
+
+			RBTree &operator=(RBTree const &rhs) {
+				if (&rhs == this)
+					return (*this);
+				clear();
+				insert(rhs.begin(), rhs.end());
+				return (*this);
+			}
+
+			~RBTree(void) {
+				if (getSize() > 0 && _root != NULL) {
+					clear(_root); 
+					_root = NULL;
+				}
+			}
+
+			node *getRoot() { return _root; }
+			node *getEmptyNode() { return _emptyNode; }
+			size_t getSize() { return _size; }
+			node *getParent(node *n){ return n->parent; }
+			node *getGrandParent(node *n) {
+				node *p = getParent(n);
+				if (p == NULL)
+					return NULL;
+				return getParent(p);
+			}
+
+			node *getSibling(node *n) {
+				node *p = getParent(n);
+				if (p == NULL)
+					return NULL;
+				else if (p->left == n)
+					return p->right;
+				else
+					return p->left;
+			}
+
+			node *getUncle(node *n) {
+				node *p = getParent(n);
+				node *g = getGrandParent(n);
+
+				if (g == NULL)
+					return NULL;
+				return getSibling(p);
+			}
+
+			bool insert(ft::pair<const Key, T> *p) {
+				_detachNullNode();
+				node *tmp = NULL;
+				if (find(p->first) == NULL)
+					tmp = _insertFromRoot(_root, createNode(p));
+				else {
+					_replaceNullNode();
+					return false;
+				} if (tmp == NULL) {
+					_replaceNullNode();
+					return false;
+				}
+				_root = tmp;
+				_replaceNullNode();
+				return true;
+			}
+
+			bool insert(const ft::pair<const Key, T> *p) {
+				_detachNullNode();
+				node *tmp = NULL;
+				if (find(p->first) == NULL)
+					tmp = _insertFromRoot(_root, createNode(p));
+				else {
+					_replaceNullNode();
+					return false;
+				} if (tmp == NULL) {
+					_replaceNullNode();
+					return false;
+				}
+				_root = tmp;
+				_replaceNullNode();
+				return true;
+			}
+
+			node *insert(ft::pair<const Key, T> position, const ft::pair<const Key, T> *p) {
+				_detachNullNode();
+				node *tmp = _insertFromRoot(find(position.first), createNode(p));
+				_replaceNullNode();
+				return tmp;
+			}
+
+			bool erase(Key key)	{
+				node *z;
+				z = find(key);
+				node *y = z;
+				node *x;
+				
+				if (z == _emptyNode || z == NULL)
+					return false;
+				int y_original_color = y->color;
+				if (z->left == NULL) {
+					x = z->right;
+					_swapNodes(z, z->right);
+				} else if (z->right == NULL || z->right == _emptyNode) {
+					x = z->left;
+					_swapNodes(z, z->left);
+				} else {
+					y = find_min(z->right);
+					y_original_color = y->color;
+					x = y->right;
+					if (x != NULL && y->parent == z)
+						x->parent = y;
+					else if (z->right != NULL) {
+						_swapNodes(y, y->right);
+						y->right = z->right;
+						if (z->right != NULL)
+							z->right->parent = y;
+					}
+					_swapNodes(z, y);
+					y->left = z->left;
+					if (y->left != NULL)
+						y->left->parent = y;
+					y->color = z->color;
+				}
+				delete z;
+				z = NULL;
+				_size--;
+				_emptyNode->color = -1;
+				if (y->color == -1 && y->parent != _root) {
+					y->parent->right = y->left;
+					y->left->parent = y->parent;
+					y->left = NULL;
+					y->right = NULL;
+				} if (y_original_color == BLACK && x != NULL)
+					_eraseBalanced(x);
+				_detachNullNode();
+				_replaceNullNode();
+				return true;
+			}
+
+			void clear(node *n) {
+				if (n != NULL && (n->color == 0 || n->color == 1)) {
+					if (n->left != NULL)
+						clear(n->left);
+					if (n->right != NULL)
+						clear(n->right);
+					if (n == _root) {
+						_alloc.destroy(_root);
+						_alloc.deallocate(_root, 1);
+						_root = NULL;
+					} else {
+						_alloc.destroy(n);
+						_alloc.deallocate(n, 1);
+						n = NULL;
+					}
 				}
 				_alloc.destroy(_emptyNode);
 				_alloc.deallocate(_emptyNode, 1);
 				_emptyNode = NULL;
 			}
-		}
 
-		node*	createNode(const ft::pair<const Key, T> *p) {
-			node*	n = _alloc.allocate(1);
-			_alloc.template construct(n, node(NULL, *p));
+			node *find(Key key) { node *tmp = _findFromNode(key, _root); return tmp; }
+			node *find_min(node *n) {
+				assert(n != NULL);
+				node *tmp = n;
+				while (tmp->left != NULL)
+					tmp = tmp->left;
+				return tmp;
+			}
+
+			node *find_max(node *n) {
+				assert(n != NULL);
+				node 	*tmp = n;
+				while (tmp->right != NULL && tmp->right->color != -1)
+					tmp = tmp->right;
+				return tmp;
+			}
+
+		node *createNode(const ft::pair<const Key, T> *p) {
+			node *n = _alloc.allocate(1);
+			_alloc.construct(n, node(NULL, *p));
 			return n;
 		}
-
-		node*	find(Key key) {
-			node *tmp = _findFromNode(key, _root);
-			return tmp;
-		}
-
-		node*	findMin(node *n) {
-			assert(n != NULL);
-			node *tmp = n;
-			while (tmp->left != NULL)
-				tmp = tmp->left;
-			return tmp;
-		}
-
-		node *findMax(node *n) {
-			assert(n != NULL);
-			node 	*tmp = n;
-			while (tmp->right != NULL && tmp->right->color != -1)
-				tmp = tmp->right;
-			return tmp;
-		}
-
-		bool	insert(ft::pair<const Key, T> *p) {
-			_detachNullNode();
-
-			node*	tmp =  NULL;
-			if (_findFromNode(p->_first, _root) == NULL) {
-				tmp = _insertFromRoot(_root, createNode(p));
-			} else {
-				_replaceNullNode();
-				return false;
-			} if (tmp == NULL) {
-				_replaceNullNode();
-				return false;
-			}
-			_root = tmp;
-			_replaceNullNode();
-			return true;
-		}
-
-		bool 	insert(const ft::pair<const Key, T> *p) {
-			_detachNullNode();
-
-			node*	tmp =  NULL;
-			if (_findFromNode(p->_first, _root) == NULL) {
-				tmp = _insertFromRoot(_root, createNode(p));
-			} else {
-				_replaceNullNode();
-				return false;
-			} if (tmp == NULL) {
-				_replaceNullNode();
-				return false;
-			}
-			_root = tmp;
-			_replaceNullNode();
-			return true;
-		}
-
-		node*	insert(ft::pair<const Key, T> position, const ft::pair<const Key, T> *p) {
-			_detachNullNode();
-			node *tmp = _insertFromRoot(find(position.first), createNode(p));
-			_replaceNullNode();
-			return tmp;
-		}
-
-		bool	erase(Key key) {
-			node *z;
-			z = find(key);
-			node *y = z;
-			node *x;
-
-			if (z == _emptyNode || z == NULL)
-				return false;
-			int y_original_color = y->color;
-			if (z->left == NULL) {
-				x = z->right;
-				_swapNode(z, z->right);
-			} else if (z->right == NULL || z->right == _emptyNode) {
-				x = z->left;
-				_swapNode(z, z->left);
-			} else {
-				y = findMin(z->right);
-				y_original_color = y->color;
-				x = y->right;
-				if (x != NULL && y->parent == z)
-					x->parent = y;
-				else if (z->right != NULL) {
-					_swapNode(y, y->right);
-					y->right = z->right;
-					if (z->right != NULL)
-						z->right->parent = y;
-				}
-				_swapNode(z, y);
-				y->left = z->left;
-				if (y->left != NULL)
-					y->left->parent = y;
-				y->color = z->color;
-			}
-			delete z;
-			z = NULL;
-			_size--;
-			_emptyNode->color = -1;
-			if (y->color == -1 && y->parent != _root) {
-				y->parent->right = y->left;
-				y->left->parent = y->parent;
-				y->left = NULL;
-				y->right = NULL;
-			} if (y_original_color == black && x != NULL)
-				_eraseBalanced(x);
-			_detachNullNode();
-			_replaceNullNode();
-			return true;
-		}
-
 	};
 
 	template < class Key, class T >
-	void print_tree(ft::TreeStruct< ft::pair<const Key, T> > *n) {
+	void print_tree(ft::BiTreeNode< ft::pair<const Key, T> > *n) {
 		if (n != NULL) {
 			if (n->left != NULL)
 				print_tree(n->left);
 			if (n != NULL && n->color != -1)
-				std::cout << "Data:[" << n->data.first
-				<< "," << n->data.second << "] | color:"
-				<< ((n->color == 0) ? "BLACK" : "RED")
-				<< std::endl;
+				std::cout << "Data:[" << n->data.first << "," << n->data.second << "] | color:" << ((n->color == 0) ? "BLACK" : "RED") << std::endl;
 			if (n->right != NULL)
 				print_tree(n->right);
 		}
 	}
+}
 
-} // ft
-
-/* **************************************************************************** */
-/*									Memo										*/
-/* **************************************************************************** */
-
-/**
-		 * Find the best place of the node "n" and insert it in tree.
-		 *
-		 * @param root - actual pointer of tree's node
-		 * @param n - node to add
-		 * @return void
-		 * void		_insertRecursive(node* root, node* x)
-		 */
-
-/**
-		 * Swap two nodes in tree.
-		 *
-		 * @param u - first node
-		 * @param v - second node
-		 * @return void
-		 * void		_swapNode(node* t, node* g)
-		 */
-
-/**
-		 * Find the node with "key" number from "n".
-		 *
-		 * @param key - Key to search for
-		 * @param n - starting node
-		 * @return found node
-		 * node*	_findFromNode(Key key, node* x)
-		 */
-
-/**
-		 * Balance tree after insert node.
-		 *
-		 * @param n - starting node
-		 * @return void
-		 * void		_insertBalanced(node* x)
-		 */
-
-/**
-		 * Insert in "root" the node "n" and balance the tree.
-		 *
-		 * @param root - root in whitch we want to insert the node
-		 * @param n - node to insert
-		 * @return new root
-		 * node*	_insertFromRoot(node* root, node* x)
-		 */
-
-/**
-		 * Replace end node to the end of the tree
-		 *
-		 * @return void
-		 * void		_replaceNullNode()
-		 */
-
-/**
-		 * Detach end node
-		 *
-		 * @return void
-		 * void 	_detachNullNode()
-		 */
-
-/**
-		 * Insert pair "p" in root.
-		 *
-		 * @param p - pair pointer
-		 * @return true if pair inserted
-		 * bool		insert(ft::pair<const Key, T> *p)
-		 * bool 	insert(const ft::pair<const Key, T> *p)
-		 */
-
-/**
-		 * Insert pair "p" at position in tree.
-		 * Start insertion from "position".
-		 *
-		 * @param position - pair
-		 * @param p - pair pointer
-		 * @return node inserted
-		 * node*	insert(ft::pair<const Key, T> position, const ft::pair<const Key, T> *p)
-		 */
-
-/**
-	 * Delete node with "key".
-	 * After node are deleted, balance tree.
-	 *
-	 * @param key - key of node
-	 * @return true if key erased
-	 * bool		erase(Key key)
-	 */
-
-#endif //FT_CONTAINER_RBTREE_HPP
+#endif

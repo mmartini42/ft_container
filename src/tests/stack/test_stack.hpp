@@ -13,7 +13,7 @@
 #include <fstream>
 #include <typeinfo>
 #include <cxxabi.h>
-#include "../../../stack.hpp"
+#include "../../../incs/stack.hpp"
 
 template <class Stack>
 void show_stack_infos(Stack &stk, std::ofstream &file)

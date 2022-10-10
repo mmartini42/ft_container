@@ -10,10 +10,10 @@
 #include <map>
 #include <iostream>
 #include <fstream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <typeinfo>
 #include <cxxabi.h>
-#include "../../Map/Map.hpp"
+#include "../../../incs/Map/map.hpp"
 
 size_t INSERT_COUNT = 1;
 size_t ERASE_COUNT = 1;

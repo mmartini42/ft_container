@@ -8,4 +8,4 @@ file(GLOB_RECURSE HEADER RELATIVE ${CMAKE_SOURCE_DIR} "./incs/*.hpp")
 
 include_directories(${CMAKE_SOURCE_DIR}/incs/)
 
-add_executable(ft_container ${SOURCES} incs/Map/Pair.h)
+add_executable(ft_container ${SOURCES} incs/Map/Pair.hpp incs/Map/TreeStruct.hpp)
